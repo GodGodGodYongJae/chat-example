@@ -1,0 +1,11 @@
+const Troopers = require('./Trooper');
+
+class BattlePacket {
+  constructor(item) {
+    this.AteamTrooper = item.AteamTrooper;
+    this.BteamTrooper = item.BteamTrooper;
+    this.BattleName = item.BattleName;
+  }
+}
+
+module.exports = BattlePacket;

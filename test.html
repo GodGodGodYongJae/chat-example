@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+    <style>
+        .troop-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .troop-table th, .troop-table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .troop-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .team-header {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="team-container">
+        <div class="team-header">A-Team Troopers</div>
+        <table id="aTeamTable" class="troop-table">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Level</th>
+                <th>HP</th>
+                <th>ATK</th>
+                <th>DEF</th>
+            </tr>
+        </table>
+    </div>
+
+    <div class="team-container">
+        <div class="team-header">B-Team Troopers</div>
+        <table id="bTeamTable" class="troop-table">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Level</th>
+                <th>HP</th>
+                <th>ATK</th>
+                <th>DEF</th>
+            </tr>
+        </table>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script> <!-- Socket.IO 라이브러리를 불러옴 -->
+    <script>
+        const socket = io(); // 서버와의 Socket.IO 연결
+
+        // 서버로부터 troop 데이터 수신
+        socket.on('Battle data', (battlePacket) => {
+           console.log("뭔가왔음");
+            displayTroopData(battlePacket.AteamTrooper.troopers, 'aTeamTable');
+            displayTroopData(battlePacket.BteamTrooper.troopers, 'bTeamTable');
+            
+        });
+
+        // troop 데이터를 테이블에 표시
+        function displayTroopData(troopers, tableId) {
+            const table = document.getElementById(tableId);
+
+            // 테이블 내용 초기화
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+
+            // troop 데이터를 테이블에 추가
+            for (const trooper of troopers) {
+                const row = table.insertRow();
+
+                const idCell = row.insertCell();
+                idCell.textContent = trooper.id;
+
+                const nameCell = row.insertCell();
+                nameCell.textContent = trooper.name;
+
+                const levelCell = row.insertCell();
+                levelCell.textContent = trooper.status.level;
+
+                const hpCell = row.insertCell();
+                hpCell.textContent = trooper.status.currentHP+"/"+trooper.status.hp;
+
+                const atkCell = row.insertCell();
+                atkCell.textContent = trooper.status.atk;
+
+                const defCell = row.insertCell();
+                defCell.textContent = trooper.status.def;
+            }
+        }
+
+        // AJAX를 사용하여 트룹 데이터 요청
+        function requestTroopData(battleName) {
+            const xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState === 4 && this.status === 200) {
+                    const battlePacket = JSON.parse(this.responseText);
+                    console.log(battlePacket.AteamTrooper);
+                    displayTroopData(battlePacket.AteamTrooper.troopers, 'aTeamTable');
+                     displayTroopData(battlePacket.BteamTrooper.troopers, 'bTeamTable');
+                }
+            };
+            xhttp.open("GET", `/test/${battleName}`, true);
+            xhttp.send();
+        }
+
+        // 특정 배틀명의 BattlePacket 데이터 요청
+        requestTroopData('battle1'); // 예시로 'BattleName1'의 BattlePacket 데이터 요청
+    </script>
+</body>
+</html>
